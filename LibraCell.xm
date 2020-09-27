@@ -38,6 +38,12 @@
 @implementation LibraTapGestureRecognizer
 @end
 
+@implementation LibraCollectionView
+- (void)setIdentifier:(NSString *)arg1 {
+    _identifier = arg1;
+}
+@end
+
 @implementation LibraStackView
 
 - (id)initWithApps:(NSArray *)apps {

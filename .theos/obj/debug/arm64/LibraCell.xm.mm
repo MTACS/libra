@@ -39,6 +39,12 @@
 @implementation LibraTapGestureRecognizer
 @end
 
+@implementation LibraCollectionView
+- (void)setIdentifier:(NSString *)arg1 {
+    _identifier = arg1;
+}
+@end
+
 
 #include <substrate.h>
 #if defined(__clang__)
@@ -63,7 +69,7 @@
 @class SBIconController; 
 
 static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SBIconController(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SBIconController"); } return _klass; }
-#line 41 "LibraCell.xm"
+#line 47 "LibraCell.xm"
 @implementation LibraStackView
 
 - (id)initWithApps:(NSArray *)apps {
@@ -126,4 +132,4 @@ static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _
     return 1;
 }
 @end
-#line 103 "LibraCell.xm"
+#line 109 "LibraCell.xm"

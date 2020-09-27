@@ -15,6 +15,7 @@ static NSString *domainString = @"com.mtac.libra";
 @interface NSUserDefaults (Libra)
 - (id)objectForKey:(NSString *)key inDomain:(NSString *)domain;
 - (void)setObject:(id)value forKey:(NSString *)key inDomain:(NSString *)domain;
+- (void)removeObjectForKey:(NSString *)key inDomain:(NSString *)domain;
 @end
 
 @interface SBFolderView: UIView
@@ -61,9 +62,8 @@ struct SBIconImageInfo {
 @property (strong, nonatomic) UIWindow *appWindow;
 @property (strong, nonatomic) UIWindow *stackWindow;
 @property (strong, nonatomic) NSMutableArray *genres;
-@property (strong, nonatomic) NSMutableDictionary *genreKeys;
-@property (strong, nonatomic) UITableView *libraTableView;
 @property (strong, nonatomic) UILabel *genreLabelOne;
+@property (strong, nonatomic) UISwipeGestureRecognizer *swiperight;
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView;
 + (id)sharedInstance;
 - (void)handleHold:(UITapGestureRecognizer *)sender;
@@ -160,4 +160,9 @@ struct SBIconImageInfo {
 @property (nonatomic, assign) BOOL continuousCorners;
 @property (nonatomic, assign) BOOL allowsGroupOpacity;
 @property (nonatomic, assign) BOOL allowsGroupBlending;
+@end
+
+@interface LibraCollectionView: UICollectionView
+@property (strong, nonatomic) NSString *identifier;
+- (void)setIdentifier:(NSString *)arg1;
 @end
