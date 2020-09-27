@@ -1,0 +1,10 @@
+Package: com.mtac.libra
+Name: Libra
+Depends: mobilesubstrate
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: MTAC
+Author: MTAC
+Section: Tweaks
+Version: 0.0.1-11+debug
+Installed-Size: 368
