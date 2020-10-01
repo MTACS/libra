@@ -405,6 +405,9 @@ NSInteger genreTypesCount() {
 
 - (void)openApp:(LibraButtonView *)sender {
     [[UIApplication sharedApplication] launchApplicationWithIdentifier:sender.identifier suspended:0];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        [self dismissStack];
+    });
 }
 
 %new 
@@ -463,13 +466,27 @@ NSInteger genreTypesCount() {
     [UIView animateWithDuration:0.3 animations:^{
         self.stackWindow.alpha = 1.0;
         self.libraView.alpha = 0.0;
+    } completion:^(BOOL finished) {}];
+}
+
+%new
+
+- (void)dismissStack {
+    [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
+    isAppStack = NO;
+    self.libraView.alpha = 0.0;
+    [UIView animateWithDuration:0.3 animations:^{
+        self.libraView.alpha = 1.0;
+        self.libraView.userInteractionEnabled = YES;
     } completion:^(BOOL finished) {
     }];
+    self.stackWindow.hidden = YES;
 }
 
 %new
 
 - (void)dismissStack:(UITapGestureRecognizer *)sender {
+    [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
     isAppStack = NO;
     self.libraView.alpha = 0.0;
     [UIView animateWithDuration:0.3 animations:^{

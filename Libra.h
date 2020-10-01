@@ -74,6 +74,8 @@ struct SBIconImageInfo {
 - (void)removeView;
 - (void)setupView;
 - (void)getGenres;
+- (void)dismissStack;
+- (void)dismissStack:(UITapGestureRecognizer *)arg1;
 - (UIVisualEffect *)getBlurStyle:(NSInteger)style;
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (NSString *)getGenreName:(NSInteger)row section:(NSInteger)section;
