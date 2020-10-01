@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Main Tweak Settings</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.mtac.libra</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>label</key>
+			<string>Enable Tweak</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Haptic Feedback</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.mtac.libra</string>
+			<key>key</key>
+			<string>useHaptics</string>
+			<key>label</key>
+			<string>Enable Haptic Feedback</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.mtac.libra</string>
+			<key>key</key>
+			<string>hapticOpen</string>
+			<key>label</key>
+			<string>On Open</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.mtac.libra</string>
+			<key>key</key>
+			<string>hapticClose</string>
+			<key>label</key>
+			<string>On Close</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerAlignment</key>
+			<string>1</string>
+			<key>footerText</key>
+			<string>Libra 1.0 © MTAC</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>Libra</string>
+</dict>
+</plist>

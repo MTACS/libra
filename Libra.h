@@ -11,7 +11,6 @@
 #define PrefsDict @"/var/mobile/Library/Preferences/com.mtac.libra.plist"
 
 extern NSString* const kCAFilterDestOut;
-
 static NSString *domainString = @"com.mtac.libra";
 
 @interface NSUserDefaults (Libra)
@@ -57,13 +56,16 @@ struct SBIconImageInfo {
 @property (nonatomic,readonly) SBIconModel * iconModel;
 @end
 
-@interface SBIconController: UIViewController <UICollectionViewDataSource,UICollectionViewDelegateFlowLayout>
+@interface SBIconController: UIViewController <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout> {
+	NSSet* _visibleTags;
+}
 @property (strong, nonatomic) UICollectionView *libraView;
 @property (getter=_rootFolderController, nonatomic, readonly) SBRootFolderController * rootFolderController; 
 @property (nonatomic, copy, readonly) NSArray * allApplications;
 @property (strong, nonatomic) UIWindow *appWindow;
 @property (strong, nonatomic) UIWindow *stackWindow;
 @property (strong, nonatomic) NSMutableArray *genres;
+@property (nonatomic, copy, readonly) NSSet * visibleIconStateDisplayIdentifiers; 
 @property (strong, nonatomic) UILabel *genreLabelOne;
 @property (strong, nonatomic) UISwipeGestureRecognizer *swiperight;
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView;
@@ -74,6 +76,7 @@ struct SBIconImageInfo {
 - (void)removeView;
 - (void)setupView;
 - (void)getGenres;
+- (void)getSystemApps;
 - (void)dismissStack;
 - (void)dismissStack:(UITapGestureRecognizer *)arg1;
 - (UIVisualEffect *)getBlurStyle:(NSInteger)style;

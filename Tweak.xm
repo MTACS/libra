@@ -5,6 +5,10 @@ CGRect bottomDismiss;
 CGRect topDimiss;
 static BOOL canOpenLibra = YES;
 static BOOL isAppStack = NO;
+BOOL enabled;
+BOOL useHaptics;
+BOOL hapticOpen;
+BOOL hapticClose;
 
 long long getCurrentPage() {
     SBRootFolderController *sbr = [[%c(SBIconController) sharedInstance] _rootFolderController];
@@ -81,8 +85,19 @@ NSInteger genreTypesCount() {
 - (void)viewDidLoad {
     %orig;
     [self getGenres];
+    [self getSystemApps];
     if (self.appWindow != nil) {
         [self removeView];
+    }
+}
+
+%new
+- (void)getSystemApps {
+    NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
+    for (NSString *app in [apps allKeys]) {
+        if ([app containsString:@"com.apple."]) {
+            NSLog(@"LIBRA DEBUG: %@", app);
+        }
     }
 }
 
@@ -114,22 +129,30 @@ NSInteger genreTypesCount() {
 %new 
 - (NSArray *)getAppsForGenreName:(NSString *)name {
     if (![preferences objectForKey:name]) {
-        NSMutableArray *returnItems = [[NSMutableArray alloc] init];
-        NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
-        for (NSString *key in [apps allKeys]) {
-            if (key != nil) {
-                LSApplicationProxy *proxy = [LSApplicationProxy applicationProxyForIdentifier:[NSString stringWithFormat:@"%@", key]];
-                NSString *genre = [proxy genre];
-                if (genre != NULL) {
-                    if ([genre isEqualToString:name]) {
-                        [returnItems addObject:key];
+        if (name == NULL) {
+            NSArray *system = [NSArray arrayWithObjects:@"com.apple.Music", @"com.apple.MobileSMS", @"com.apple.Weather", nil];
+            [preferences setObject:system forKey:@"System"];
+        } else {
+            NSMutableArray *returnItems = [[NSMutableArray alloc] init];
+            NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
+            for (NSString *key in [apps allKeys]) {
+                if (key != nil) {
+                    LSApplicationProxy *proxy = [LSApplicationProxy applicationProxyForIdentifier:[NSString stringWithFormat:@"%@", key]];
+                    NSString *genre = [proxy genre];
+                    if (genre != NULL) {
+                        if ([genre isEqualToString:name]) {
+                            [returnItems addObject:key];
+                        }
                     }
                 }
             }
+            NSLog(@"LIBRA DEBUG: Genre -> %@: %@", name, returnItems);
+            [preferences setObject:[returnItems copy] forKey:name];
+            return returnItems;
         }
-        NSLog(@"LIBRA DEBUG: Genre -> %@: %@", name, returnItems);
-        [preferences setObject:[returnItems copy] forKey:name];
-        return returnItems;
+    }
+    if (name == NULL) {
+        return [preferences objectForKey:@"System"];
     }
     return [preferences objectForKey:name];
 }
@@ -137,7 +160,7 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)setupView {
-    AudioServicesPlaySystemSound(1519);
+    if (useHaptics && hapticOpen) AudioServicesPlaySystemSound(1519);
     if (!self.appWindow) {
         self.appWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
         self.appWindow.backgroundColor = [UIColor clearColor];
@@ -194,14 +217,14 @@ NSInteger genreTypesCount() {
 
         self.appWindow.alpha = 0.0;
         [self.appWindow makeKeyAndVisible];
-        [UIView animateWithDuration:0.3 animations:^{
+        [UIView animateWithDuration:0.5 animations:^{
             self.appWindow.alpha = 1.0;
         } completion:^(BOOL finished) {
         }];
     } else {
         self.appWindow.alpha = 0.0;
         [self.appWindow makeKeyAndVisible];
-        [UIView animateWithDuration:0.3 animations:^{
+        [UIView animateWithDuration:0.5 animations:^{
             self.appWindow.alpha = 1.0;
         } completion:^(BOOL finished) {
         }];
@@ -258,6 +281,7 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)swiperight:(id)sender {
+    if (useHaptics && hapticClose) AudioServicesPlaySystemSound(1519);
     if (self.appWindow.hidden == NO) {
         [self removeView];
     }
@@ -268,7 +292,7 @@ NSInteger genreTypesCount() {
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     if (!isAppStack) {
         NSArray *genres = [preferences objectForKey:@"genres"];
-        return genres.count / 2;
+        return (genres.count + 2) / 2;
     } 
     // NSString *identifier = MSHookIvar<NSString *>(collectionView, "_identifier");
     NSArray *apps = [preferences objectForKey:collectionView.identifier];
@@ -405,9 +429,6 @@ NSInteger genreTypesCount() {
 
 - (void)openApp:(LibraButtonView *)sender {
     [[UIApplication sharedApplication] launchApplicationWithIdentifier:sender.identifier suspended:0];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [self dismissStack];
-    });
 }
 
 %new 
@@ -463,7 +484,7 @@ NSInteger genreTypesCount() {
     self.libraView.alpha = 1.0;
     
     [self.stackWindow makeKeyAndVisible];
-    [UIView animateWithDuration:0.3 animations:^{
+    [UIView animateWithDuration:0.5 animations:^{
         self.stackWindow.alpha = 1.0;
         self.libraView.alpha = 0.0;
     } completion:^(BOOL finished) {}];
@@ -475,7 +496,7 @@ NSInteger genreTypesCount() {
     [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
     isAppStack = NO;
     self.libraView.alpha = 0.0;
-    [UIView animateWithDuration:0.3 animations:^{
+    [UIView animateWithDuration:0.5 animations:^{
         self.libraView.alpha = 1.0;
         self.libraView.userInteractionEnabled = YES;
     } completion:^(BOOL finished) {
@@ -489,7 +510,7 @@ NSInteger genreTypesCount() {
     [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
     isAppStack = NO;
     self.libraView.alpha = 0.0;
-    [UIView animateWithDuration:0.3 animations:^{
+    [UIView animateWithDuration:0.5 animations:^{
         self.libraView.alpha = 1.0;
         self.libraView.userInteractionEnabled = YES;
     } completion:^(BOOL finished) {
@@ -609,7 +630,8 @@ NSInteger genreTypesCount() {
         NSOrderedSet *set = [[NSOrderedSet alloc] initWithArray:genresList];
         NSArray *genresFinal = [set array];
         self.genres = [genresFinal copy];
-        [preferences setObject:[genresFinal copy] forKey:@"genres"];
+        NSMutableArray *listWithNew = [genresFinal mutableCopy];
+        [preferences setObject:[listWithNew copy] forKey:@"genres"];
     }
 }
 %end
@@ -659,6 +681,16 @@ NSInteger genreTypesCount() {
 %end
 
 %ctor {
-    preferences = [[HBPreferences alloc] initWithIdentifier:@"com.mtac.libra"];
-    %init(Tweak);
+
+    @autoreleasepool {
+        preferences = [[HBPreferences alloc] initWithIdentifier:@"com.mtac.libra"];
+        [preferences registerBool:&enabled default:NO forKey:@"enabled"];
+        [preferences registerBool:&useHaptics default:NO forKey:@"useHaptics"];
+        [preferences registerBool:&hapticOpen default:NO forKey:@"hapticOpen"];
+        [preferences registerBool:&hapticClose default:NO forKey:@"hapticClose"];
+        [preferences registerDefaults:@{@"enabled": @NO, @"useHaptics": @NO, @"hapticOpen": @NO, @"hapticClose": @NO}];
+    }
+    if (enabled) {
+        %init(Tweak);
+    }
 }
