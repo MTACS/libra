@@ -1,5 +1,6 @@
 #import "Libra.h"
 
+HBPreferences *preferences;
 CGRect bottomDismiss;
 CGRect topDimiss;
 static BOOL canOpenLibra = YES;
@@ -57,6 +58,8 @@ NSInteger genreTypesCount() {
 	return genreTypes / 2;
 }
 
+%group Tweak
+
 %hook SBIconController
 %property (strong, nonatomic) UIWindow *appWindow;
 %property (strong, nonatomic) UIWindow *stackWindow;
@@ -77,6 +80,7 @@ NSInteger genreTypesCount() {
 
 - (void)viewDidLoad {
     %orig;
+    [self getGenres];
     if (self.appWindow != nil) {
         [self removeView];
     }
@@ -109,7 +113,7 @@ NSInteger genreTypesCount() {
 
 %new 
 - (NSArray *)getAppsForGenreName:(NSString *)name {
-    if (![[NSUserDefaults standardUserDefaults] objectForKey:name inDomain:domainString]) {
+    if (![preferences objectForKey:name]) {
         NSMutableArray *returnItems = [[NSMutableArray alloc] init];
         NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
         for (NSString *key in [apps allKeys]) {
@@ -124,88 +128,85 @@ NSInteger genreTypesCount() {
             }
         }
         NSLog(@"LIBRA DEBUG: Genre -> %@: %@", name, returnItems);
-        [[NSUserDefaults standardUserDefaults] setObject:[returnItems copy] forKey:name inDomain:domainString];
+        [preferences setObject:[returnItems copy] forKey:name];
         return returnItems;
     }
-    return [[NSUserDefaults standardUserDefaults] objectForKey:name inDomain:domainString];
+    return [preferences objectForKey:name];
 }
 
 %new
 
 - (void)setupView {
+    AudioServicesPlaySystemSound(1519);
+    if (!self.appWindow) {
+        self.appWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        self.appWindow.backgroundColor = [UIColor clearColor];
+        self.appWindow.windowLevel = UIWindowLevelNormal;// UIWindowLevelAlert;
+        
+        if (!self.swiperight) {
+            self.swiperight = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swiperight:)];
+            self.swiperight.direction = UISwipeGestureRecognizerDirectionRight;
+            [self.appWindow addGestureRecognizer:self.swiperight];
+        }
+        
+        _UIBackdropViewSettings *dropSettings = [_UIBackdropViewSettings settingsForStyle:2];
+        _UIBackdropView *blurView = [[_UIBackdropView alloc] initWithFrame:CGRectMake(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT) autosizesToFitSuperview:YES settings:dropSettings];
+        [self.appWindow addSubview:blurView];
 
-    [self getGenres:^{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (!self.appWindow) {
-                self.appWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-                self.appWindow.backgroundColor = [UIColor clearColor];
-                self.appWindow.windowLevel = UIWindowLevelNormal;// UIWindowLevelAlert;
-                
-                if (!self.swiperight) {
-                    self.swiperight = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swiperight:)];
-                    self.swiperight.direction = UISwipeGestureRecognizerDirectionRight;
-                    [self.appWindow addGestureRecognizer:self.swiperight];
-                }
-                
-                _UIBackdropViewSettings *dropSettings = [_UIBackdropViewSettings settingsForStyle:2];
-                _UIBackdropView *blurView = [[_UIBackdropView alloc] initWithFrame:CGRectMake(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT) autosizesToFitSuperview:YES settings:dropSettings];
-                [self.appWindow addSubview:blurView];
+        /*UIView *blurView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT)];
+        UIVisualEffectView *wallVisualEffectView = [[UIVisualEffectView alloc] initWithFrame:blurView.bounds];
+        wallVisualEffectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
+        [blurView addSubview:wallVisualEffectView];
+        [self.appWindow addSubview:blurView]; */
+    
+        UIView *searchView = [[UIView alloc] initWithFrame:CGRectMake(30, 50, DEVICE_WIDTH - 60, 50)];
+        searchView.layer.masksToBounds = YES;
+        searchView.layer.cornerRadius = 16;
+        searchView.layer.continuousCorners = YES;
+        searchView.backgroundColor = [UIColor clearColor];
+        UIVisualEffectView *searchBlur = [[UIVisualEffectView alloc] initWithFrame:searchView.bounds];
+        searchBlur.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
+        searchBlur.alpha = 0.75;
+        
+        UILabel *searchLabel = [[UILabel alloc] initWithFrame:searchView.bounds];
+        searchLabel.textAlignment = NSTextAlignmentCenter;
+        searchLabel.text = @"App Library";
+        searchLabel.textColor = [UIColor whiteColor];
+        searchLabel.font = [UIFont systemFontOfSize:20];
+        [searchView addSubview:searchBlur];
+        [searchView addSubview:searchLabel];
+        searchLabel.layer.allowsGroupBlending = YES;
+        searchLabel.layer.allowsGroupOpacity = NO;
+        searchLabel.layer.compositingFilter = kCAFilterDestOut;
+        [self.appWindow addSubview:searchView];
 
-                /*UIView *blurView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT)];
-                UIVisualEffectView *wallVisualEffectView = [[UIVisualEffectView alloc] initWithFrame:blurView.bounds];
-                wallVisualEffectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
-                [blurView addSubview:wallVisualEffectView];
-                [self.appWindow addSubview:blurView]; */
-            
-                UIView *searchView = [[UIView alloc] initWithFrame:CGRectMake(30, 50, DEVICE_WIDTH - 60, 50)];
-                searchView.layer.masksToBounds = YES;
-                searchView.layer.cornerRadius = 16;
-                searchView.layer.continuousCorners = YES;
-                searchView.backgroundColor = [UIColor clearColor];
-                UIVisualEffectView *searchBlur = [[UIVisualEffectView alloc] initWithFrame:searchView.bounds];
-                searchBlur.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
-                searchBlur.alpha = 0.75;
-                
-                UILabel *searchLabel = [[UILabel alloc] initWithFrame:searchView.bounds];
-                searchLabel.textAlignment = NSTextAlignmentCenter;
-                searchLabel.text = @"App Library";
-                searchLabel.textColor = [UIColor whiteColor];
-                searchLabel.font = [UIFont systemFontOfSize:20];
-                [searchView addSubview:searchBlur];
-                [searchView addSubview:searchLabel];
-                searchLabel.layer.allowsGroupBlending = YES;
-		        searchLabel.layer.allowsGroupOpacity = NO;
-                searchLabel.layer.compositingFilter = kCAFilterDestOut;
-                [self.appWindow addSubview:searchView];
+        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+        layout.minimumInteritemSpacing = 0;
+        layout.minimumLineSpacing = 0;
+        [layout setScrollDirection:UICollectionViewScrollDirectionVertical];
+        self.libraView = [[UICollectionView alloc] initWithFrame:CGRectMake(15, 115, DEVICE_WIDTH - 30, DEVICE_HEIGHT - 115) collectionViewLayout:layout]; // 115
+        [self.libraView setDelegate:self];
+        [self.libraView setDataSource:self];
+        [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
+        [self.libraView setBackgroundColor:[UIColor clearColor]];
 
-                UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-                layout.minimumInteritemSpacing = 0;
-                layout.minimumLineSpacing = 0;
-                [layout setScrollDirection:UICollectionViewScrollDirectionVertical];
-                self.libraView = [[UICollectionView alloc] initWithFrame:CGRectMake(15, 115, DEVICE_WIDTH - 30, DEVICE_HEIGHT - 115) collectionViewLayout:layout]; // 115
-                [self.libraView setDelegate:self];
-                [self.libraView setDataSource:self];
-                [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier"];
-                [self.libraView setBackgroundColor:[UIColor clearColor]];
+        [self.appWindow addSubview:self.libraView];
 
-                [self.appWindow addSubview:self.libraView];
-
-                self.appWindow.alpha = 0.0;
-                [self.appWindow makeKeyAndVisible];
-                [UIView animateWithDuration:0.3 animations:^{
-                    self.appWindow.alpha = 1.0;
-                } completion:^(BOOL finished) {
-                }];
-            } else {
-                self.appWindow.alpha = 0.0;
-                [self.appWindow makeKeyAndVisible];
-                [UIView animateWithDuration:0.3 animations:^{
-                    self.appWindow.alpha = 1.0;
-                } completion:^(BOOL finished) {
-                }];
-            }
-        });
-    }];
+        self.appWindow.alpha = 0.0;
+        [self.appWindow makeKeyAndVisible];
+        [UIView animateWithDuration:0.3 animations:^{
+            self.appWindow.alpha = 1.0;
+        } completion:^(BOOL finished) {
+        }];
+    } else {
+        self.appWindow.alpha = 0.0;
+        [self.appWindow makeKeyAndVisible];
+        [UIView animateWithDuration:0.3 animations:^{
+            self.appWindow.alpha = 1.0;
+        } completion:^(BOOL finished) {
+        }];
+    }
+ 
 
     /* UIWindow *appWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     appWindow.backgroundColor = [UIColor clearColor];
@@ -266,13 +267,12 @@ NSInteger genreTypesCount() {
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     if (!isAppStack) {
-        NSArray *genres = [[NSUserDefaults standardUserDefaults] objectForKey:@"genres" inDomain:domainString];
+        NSArray *genres = [preferences objectForKey:@"genres"];
         return genres.count / 2;
     } 
-    // if ([collectionView isKindOfClass:NSClassFromString(@"LibraCollectionView")]) 
-    NSString *identifier = MSHookIvar<NSString *>(collectionView, "_identifier");
-    NSArray *apps = [[NSUserDefaults standardUserDefaults] objectForKey:identifier inDomain:domainString];
-    return apps.count;
+    // NSString *identifier = MSHookIvar<NSString *>(collectionView, "_identifier");
+    NSArray *apps = [preferences objectForKey:collectionView.identifier];
+    return apps.count - 3;
 }
 
 %new 
@@ -286,7 +286,7 @@ NSInteger genreTypesCount() {
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     LibraCell *cell;
     if (!isAppStack) {
-        cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath] ?: [[LibraCell alloc] initWithFrame:CGRectMake(0, 0, self.libraView.bounds.size.width / 2, self.libraView.bounds.size.width / 2)];
+        cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier1" forIndexPath:indexPath] ?: [[LibraCell alloc] initWithFrame:CGRectMake(0, 0, self.libraView.bounds.size.width / 2, self.libraView.bounds.size.width / 2)];
         if (cell) {
             UIView *blurredBackground = [[UIView alloc] init];
             UILabel *genreLabel = [[UILabel alloc] init];
@@ -308,7 +308,7 @@ NSInteger genreTypesCount() {
             appView.tag = 7;
             LibraTapGestureRecognizer *tapGesture = [[LibraTapGestureRecognizer alloc] initWithTarget:self action:@selector(openStack:)];
             tapGesture.numberOfTapsRequired = 1;
-            tapGesture.identifier = [[[NSUserDefaults standardUserDefaults] objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row];
+            tapGesture.identifier = [[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row];
             [appView addGestureRecognizer:tapGesture];
             [blurredBackground addSubview:wallVisualEffectView];
             [blurredBackground addSubview:launcherOne];
@@ -331,7 +331,7 @@ NSInteger genreTypesCount() {
         UILabel *genreLabel = (UILabel *)[cell.contentView viewWithTag:2];
         genreLabel.font = [UIFont boldSystemFontOfSize:14];
         genreLabel.textAlignment = NSTextAlignmentCenter;
-        genreLabel.text = [[[NSUserDefaults standardUserDefaults] objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row]; // [NSString stringWithFormat:@"%ld, %ld, %@, %@", indexPath.row, indexPath.section, self.genres[[self getGenreIndex:indexPath.row:indexPath.section]], [self getAppsForGenreName:self.genres[[self getGenreIndex:indexPath.row:indexPath.section]]]];
+        genreLabel.text = [[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]; // [NSString stringWithFormat:@"%ld, %ld, %@, %@", indexPath.row, indexPath.section, self.genres[[self getGenreIndex:indexPath.row:indexPath.section]], [self getAppsForGenreName:self.genres[[self getGenreIndex:indexPath.row:indexPath.section]]]];
         genreLabel.textColor = [UIColor whiteColor];
         genreLabel.translatesAutoresizingMaskIntoConstraints = false;
         [genreLabel.bottomAnchor constraintEqualToAnchor:cell.contentView.bottomAnchor constant:0].active = YES;
@@ -343,28 +343,27 @@ NSInteger genreTypesCount() {
         LibraButtonView *launcherTwo = (LibraButtonView *)[cell.contentView viewWithTag:5];
         LibraButtonView *launcherThree = (LibraButtonView *)[cell.contentView viewWithTag:6];
         LibraAppView *appView = (LibraAppView *)[cell.contentView viewWithTag:7];
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSString *launcherOneID = [[self getAppsForGenreName:[[defaults objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row]] objectAtIndex:0];
+        NSString *launcherOneID = [[self getAppsForGenreName:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]] objectAtIndex:0];
         if (launcherOneID) {
             [launcherOne setImage:[self iconImageForIdentifier:launcherOneID] forState:UIControlStateNormal];
             launcherOne.identifier = launcherOneID;
             [launcherOne addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
         }
-        NSString *launcherTwoID = [[defaults objectForKey:[[defaults objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row] inDomain:domainString] objectAtIndex:1]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
+        NSString *launcherTwoID = [[preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]] objectAtIndex:1]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
         if (launcherTwoID) {
             [launcherTwo setImage:[self iconImageForIdentifier:launcherTwoID] forState:UIControlStateNormal];
             launcherTwo.identifier = launcherTwoID;
             [launcherTwo addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
         }
-        NSString *launcherThreeID = [[defaults objectForKey:[[defaults objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row] inDomain:domainString] objectAtIndex:2]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
+        NSString *launcherThreeID = [[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:2]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
         if (launcherThreeID) {
             [launcherThree setImage:[self iconImageForIdentifier:launcherThreeID] forState:UIControlStateNormal];
             launcherThree.identifier = launcherThreeID;
             [launcherThree addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
         }
-        NSArray *appsForIndexPath = [defaults objectForKey:[[defaults objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row] inDomain:domainString]; //   [self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]];
+        NSArray *appsForIndexPath = [preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]]; //   [self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]];
         if (!([appsForIndexPath count] <= 3)) {
-            appView.identifier = [[defaults objectForKey:@"genres" inDomain:domainString] objectAtIndex:indexPath.row];
+            appView.identifier = [[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row];
             if ([appsForIndexPath count] >= 4) {
                 UIImageView *libraViewOne = [[UIImageView alloc] initWithFrame:CGRectMake(5, 5, (appView.bounds.size.width - 15) / 2, (appView.bounds.size.height - 15) / 2)];
                 [libraViewOne setImage:[self iconImageForIdentifier:[appsForIndexPath objectAtIndex:3]]];
@@ -387,10 +386,17 @@ NSInteger genreTypesCount() {
             }
         }
     } else {
-        cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath] ?: [[LibraCell alloc] initWithFrame:CGRectMake(0, 0, (DEVICE_WIDTH - 100) / 4, (DEVICE_WIDTH - 100) / 4)];
+        cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier2" forIndexPath:indexPath] ?: [[UICollectionViewCell alloc] initWithFrame:CGRectMake(0, 0, (DEVICE_WIDTH - 100) / 4, (DEVICE_WIDTH - 100) / 4)];
         if (cell) {
-            [cell.contentView setBackgroundColor:[UIColor blueColor]];
+            LibraButtonView *app = [[LibraButtonView alloc] initWithFrame:cell.contentView.bounds];
+            app.backgroundColor = [UIColor clearColor];
+            app.tag = 4;
+            [cell.contentView addSubview:app];
         }
+        LibraButtonView *app = (LibraButtonView *)[cell.contentView viewWithTag:4];
+        app.identifier = [[preferences objectForKey:collectionView.identifier] objectAtIndex:indexPath.row + 3];
+        [app setImage:[self iconImageForIdentifier:[[preferences objectForKey:collectionView.identifier] objectAtIndex:indexPath.row + 3]] forState:UIControlStateNormal];
+        [app addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
     }
     return cell;
 }
@@ -427,11 +433,10 @@ NSInteger genreTypesCount() {
         layout.minimumInteritemSpacing = 0;
         layout.minimumLineSpacing = 20;
         [layout setScrollDirection:UICollectionViewScrollDirectionVertical];
-        LibraCollectionView *stack = [[LibraCollectionView alloc] initWithFrame:CGRectMake(0, ([UIScreen mainScreen].bounds.size.height / 2) - ([UIScreen mainScreen].bounds.size.width / 2), [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.width) collectionViewLayout:layout];
+        UICollectionView *stack = [[UICollectionView alloc] initWithFrame:CGRectMake(0, ([UIScreen mainScreen].bounds.size.height / 2) - ([UIScreen mainScreen].bounds.size.width / 2), [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.width) collectionViewLayout:layout];
         [stack setDelegate:self];
         [stack setDataSource:self];
-        [stack setIdentifier:sender.identifier];
-        [stack registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cellIdentifier"];
+        [stack registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cellIdentifier2"];
 
         [stack setBackgroundColor:[UIColor clearColor]];
         stack.tag = 2;
@@ -447,9 +452,8 @@ NSInteger genreTypesCount() {
     } 
     UILabel *genreLabel = (UILabel *)[self.stackWindow viewWithTag:1];
     genreLabel.text = sender.identifier;
-    LibraCollectionView *stack = (LibraCollectionView *)[self.stackWindow viewWithTag:2];
-    // appStack = [[LibraStackView alloc] init];
-    // [appStack setApps:[[NSUserDefaults standardUserDefaults] objectForKey:sender.identifier inDomain:domainString]];//   [self getAppsForGenreName:sender.identifier]];
+    UICollectionView *stack = (UICollectionView *)[self.stackWindow viewWithTag:2];
+    [stack setIdentifier:sender.identifier];
     [stack reloadData];
     
     self.stackWindow.alpha = 0.0;
@@ -466,6 +470,7 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)dismissStack:(UITapGestureRecognizer *)sender {
+    isAppStack = NO;
     self.libraView.alpha = 0.0;
     [UIView animateWithDuration:0.3 animations:^{
         self.libraView.alpha = 1.0;
@@ -571,11 +576,10 @@ NSInteger genreTypesCount() {
 
 %new
 
-- (void)getGenres:(void (^)(void))completion {
+- (void)getGenres {
     NSMutableArray *genresList = [[NSMutableArray alloc] init];
-    if (![[NSUserDefaults standardUserDefaults] objectForKey:@"genres" inDomain:domainString]) {
+    if (![preferences objectForKey:@"genres"]) {
         NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
-        // NSLog(@"LIBRA DEBUG: %@", apps);
         for (NSString *key in [apps allKeys]) {
             if (key != nil) {
                 LSApplicationProxy *proxy = [LSApplicationProxy applicationProxyForIdentifier:[NSString stringWithFormat:@"%@", key]];
@@ -588,11 +592,8 @@ NSInteger genreTypesCount() {
         NSOrderedSet *set = [[NSOrderedSet alloc] initWithArray:genresList];
         NSArray *genresFinal = [set array];
         self.genres = [genresFinal copy];
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        [defaults setObject:[genresFinal copy] forKey:@"genres" inDomain:domainString];
-        NSLog(@"LIBRA DEBUG: Genres -> %@", [defaults objectForKey:@"genres" inDomain:domainString]);
+        [preferences setObject:[genresFinal copy] forKey:@"genres"];
     }
-    completion();
 }
 %end
 
@@ -627,7 +628,20 @@ NSInteger genreTypesCount() {
 	NSString *procName = [NSProcessInfo processInfo].processName;
 	if ([procName isEqualToString:@"SpringBoard"]) {
 		self.backgroundColor = [UIColor clearColor];
-		self.selectionStyle = 0;
+		self.selectionStyle = UITableViewCellSelectionStyleNone;
 	}
 }
 %end
+
+%hook UICollectionView
+%property (strong, nonatomic) NSString *identifier;
+- (void)setIdentifier:(NSString *)arg1 {
+    %orig;
+}
+%end
+%end
+
+%ctor {
+    preferences = [[HBPreferences alloc] initWithIdentifier:@"com.mtac.libra"];
+    %init(Tweak);
+}

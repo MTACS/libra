@@ -3,6 +3,8 @@
 #import <AppList/AppList.h>
 #import <objc/runtime.h>
 #import <UIKit/UIKit.h>
+#import <Cephei/HBPreferences.h>
+#import <AudioToolbox/AudioServices.h>
 
 #define DEVICE_WIDTH [UIScreen mainScreen].bounds.size.width
 #define DEVICE_HEIGHT [UIScreen mainScreen].bounds.size.height
@@ -71,7 +73,7 @@ struct SBIconImageInfo {
 - (void)swiperight:(UISwipeGestureRecognizer*)gestureRecognizer;
 - (void)removeView;
 - (void)setupView;
-- (void)getGenres:(void (^)(void))completion;
+- (void)getGenres;
 - (UIVisualEffect *)getBlurStyle:(NSInteger)style;
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (NSString *)getGenreName:(NSInteger)row section:(NSInteger)section;
@@ -163,6 +165,11 @@ struct SBIconImageInfo {
 @end
 
 @interface LibraCollectionView: UICollectionView
+@property (strong, nonatomic) NSString *identifier;
+- (void)setIdentifier:(NSString *)arg1;
+@end
+
+@interface UICollectionView (Libra)
 @property (strong, nonatomic) NSString *identifier;
 - (void)setIdentifier:(NSString *)arg1;
 @end

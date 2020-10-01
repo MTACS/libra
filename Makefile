@@ -8,7 +8,8 @@ TWEAK_NAME = Libra
 
 Libra_FILES = Tweak.xm LibraCell.xm
 Libra_CFLAGS = -fobjc-arc
-Libra_LIBRARIES = applist
+Libra_LIBRARIES = applist 
+Libra_EXTRA_FRAMEWORKS += Cephei
 Libra_FRAMEWORKS = UIKit CoreGraphics
 
 include $(THEOS_MAKE_PATH)/tweak.mk
