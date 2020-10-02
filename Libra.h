@@ -106,7 +106,7 @@ struct SBIconImageInfo {
 @end
 
 @interface LSApplicationProxy
-@property (readonly, nonatomic) NSString * genre;
+@property (readwrite, nonatomic) NSString * genre;
 @property (nonatomic,readonly) NSString * shortVersionString; 
 @property (nonatomic,readonly) NSString * itemName;
 @property (nonatomic,readonly) NSString * applicationType;
