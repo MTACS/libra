@@ -7,7 +7,7 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = Libra
 
 Libra_FILES = Tweak.xm LibraCell.xm
-Libra_CFLAGS = -fobjc-arc
+Libra_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 Libra_LIBRARIES = applist 
 Libra_EXTRA_FRAMEWORKS += Cephei
 Libra_FRAMEWORKS = UIKit CoreGraphics

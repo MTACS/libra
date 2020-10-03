@@ -30,6 +30,32 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<string>0</string>
+			<key>defaults</key>
+			<string>com.mtac.libra</string>
+			<key>key</key>
+			<string>feedbackStyle</string>
+			<key>validValues</key>
+			<array>
+				<string>0</string>
+				<string>1</string>
+				<string>2</string>
+			</array>
+			<key>validTitles</key>
+			<array>
+				<string>Light</string>
+				<string>Medium</string>
+				<string>Heavy</string>
+			</array>
+			<key>alignment</key>
+			<string>1</string>
+			<key>PostNotification</key>
+			<string>com.mtac.libra/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
 			<false/>
