@@ -79,13 +79,23 @@ UIImageView *secondaryHeaderImage;
 	[secondaryHeaderImage.trailingAnchor constraintEqualToAnchor:self.headerView.trailingAnchor],
 	[secondaryHeaderImage.bottomAnchor constraintEqualToAnchor:self.headerView.bottomAnchor],
 	]];
+    /*
 	[UIView animateWithDuration:2.0 animations:^ {
 		secondaryHeaderImage.alpha = 1;
 	} completion:^(BOOL finished) {
-		/* [UIView animateWithDuration:0.8 animations:^ {
+		[UIView animateWithDuration:0.8 animations:^ {
 		secondaryHeaderImage.alpha = 0;
-		} completion:^(BOOL finished) {}]; */
+		} completion:^(BOOL finished) {}];
 	}];
+    */
+    
+    [UIView animateWithDuration:1
+            delay:0
+            options: UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat
+            animations:^{
+                secondaryHeaderImage.alpha = 1.0;
+            } completion:nil];
+    
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat offsetY = scrollView.contentOffset.y;
