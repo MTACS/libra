@@ -94,11 +94,83 @@ NSInteger genreTypesCount() {
 %new
 - (void)getSystemApps {
     NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
+    NSArray *blacklist = [NSArray arrayWithObjects:@"com.apple.Magnifier",
+        @"com.apple.InCallService",
+        @"com.apple.RemoteiCloudQuotaUI",
+        @"com.apple.PublicHealthRemoteUI",
+        @"com.apple.CarPlaySplashScreen",
+        @"com.apple.iMessageAppsViewService",
+        @"com.apple.BarcodeScanner",
+        @"com.apple.HealthENLauncher",
+        @"com.apple.AXUIViewService",
+        @"com.apple.AppSSOUIService",
+        @"com.apple.CarPlaySettings",
+        @"com.apple.mobilesms.compose",
+        @"com.apple.BusinessChatViewService",
+        @"com.apple.reminders",
+        @"com.apple.DiagnosticsService",
+        @"com.apple.CTNotifyUIService",
+        @"com.apple.HealthPrivacyService",
+        @"com.apple.WebContentFilter.remoteUI.WebContentAnalysisUI",
+        @"com.apple.ScreenshotServicesService",
+        @"com.apple.FTMInternal",
+        @"com.apple.carkit.DNDBuddy",
+        @"com.apple.PreBoard",
+        @"com.apple.datadetectors.DDActionsService",
+        @"com.apple.DemoApp",
+        @"com.apple.CoreAuthUI",
+        @"com.apple.SubcredentialUIService",
+        @"com.apple.MailCompositionService",
+        @"com.apple.Diagnostics",
+        @"com.apple.AuthKitUIService",
+        @"com.apple.TVRemote",
+        @"com.apple.gamecenter.GameCenterUIService",
+        @"com.apple.PrintKit.Print-Center",
+        @"com.apple.sidecar",
+        @"com.apple.AccountAuthenticationDialog",
+        @"com.apple.PassbookUIService",
+        @"com.apple.siri",
+        @"com.apple.CloudKit.ShareBear",
+        @"com.apple.HealthENBuddy",
+        @"com.apple.SafariViewService",
+        @"com.apple.SIMSetupUIService",
+        @"com.apple.CompassCalibrationViewService",
+        @"com.apple.PhotosViewService",
+        @"com.apple.MusicUIService",
+        @"com.apple.TrustMe",
+        @"com.apple.Home.HomeUIService",
+        @"com.apple.CTCarrierSpaceAuth",
+        @"com.apple.StoreDemoViewService",
+        @"com.apple.susuiservice",
+        @"com.apple.social.SLYahooAuth",
+        @"com.apple.Spotlight",
+        @"com.apple.fieldtest",
+        @"com.apple.WebSheet",
+        @"com.apple.iad.iAdOptOut",
+        @"com.apple.dt.XcodePreviews",
+        @"com.apple.appleseed.FeedbackAssistant",
+        @"com.apple.FontInstallViewService",
+        @"com.apple.ScreenSharingViewService",
+        @"com.apple.SharedWebCredentialViewService",
+        @"com.apple.CheckerBoard",
+        @"com.apple.DataActivation",
+        @"com.apple.TVAccessViewService",
+        @"com.apple.VSViewService",
+        @"com.apple.TVRemoteUIService",
+        @"com.apple.SharingViewService",
+        @"com.apple.ios.StoreKitUIService",
+        @"com.apple.purplebuddy",
+        @"com.apple.ScreenTimeUnlock",
+        @"com.apple.webapp",
+        @"com.apple.AskPermissionUI", nil];
+    NSMutableArray *final = [[NSMutableArray alloc] init];
     for (NSString *app in [apps allKeys]) {
-        if ([app containsString:@"com.apple."]) {
-            NSLog(@"LIBRA DEBUG: %@", app);
+        if ([app containsString:@"com.apple."] && ![blacklist containsObject:app]) {
+            // (@"LIBRA DEBUG: %@", app);
+            [final addObject:app];
         }
     }
+    [preferences setObject:[final mutableCopy] forKey:@"System"];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -146,7 +218,8 @@ NSInteger genreTypesCount() {
                     }
                 }
             }
-            NSLog(@"LIBRA DEBUG: Genre -> %@: %@", name, returnItems);
+            // [returnItems addObject:@"com.mtac.libra"];
+            // NSLog(@"LIBRA DEBUG: Genre -> %@: %@", name, returnItems);
             [preferences setObject:[returnItems copy] forKey:name];
             return returnItems;
         }
@@ -292,7 +365,7 @@ NSInteger genreTypesCount() {
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     if (!isAppStack) {
         NSArray *genres = [preferences objectForKey:@"genres"];
-        return (genres.count + 2) / 2;
+        return genres.count; // (genres.count + 3) / 2;
     } 
     // NSString *identifier = MSHookIvar<NSString *>(collectionView, "_identifier");
     NSArray *apps = [preferences objectForKey:collectionView.identifier];
@@ -332,13 +405,25 @@ NSInteger genreTypesCount() {
             appView.tag = 7;
             LibraTapGestureRecognizer *tapGesture = [[LibraTapGestureRecognizer alloc] initWithTarget:self action:@selector(openStack:)];
             tapGesture.numberOfTapsRequired = 1;
-            tapGesture.identifier = [[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row];
+            NSString *idx = [[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row];
+            NSLog(@"LIBRA DEBUG: %@", idx);
+            tapGesture.identifier = idx;
             [appView addGestureRecognizer:tapGesture];
             [blurredBackground addSubview:wallVisualEffectView];
-            [blurredBackground addSubview:launcherOne];
-            [blurredBackground addSubview:launcherTwo];
-            [blurredBackground addSubview:launcherThree];
-            [blurredBackground addSubview:appView];
+            NSArray *total = [self getAppsForGenreName:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]];
+            NSInteger totalCount = total.count;
+            if (totalCount >= 1) {
+                [blurredBackground addSubview:launcherOne];
+            }
+            if (totalCount >= 2) {
+                [blurredBackground addSubview:launcherTwo];
+            }
+            if (totalCount >= 3) {
+                [blurredBackground addSubview:launcherThree];
+            }
+            if (totalCount >= 4) {
+                [blurredBackground addSubview:appView];
+            }
             [cell.contentView addSubview:blurredBackground];
             [cell.contentView addSubview:genreLabel];
         }
@@ -363,49 +448,52 @@ NSInteger genreTypesCount() {
         [genreLabel.rightAnchor constraintEqualToAnchor:cell.contentView.rightAnchor constant:0].active = YES;
         // [genreLabel.topAnchor constraintEqualToAnchor:blurredBackground.topAnchor constant:0].active = YES;
         
-        LibraButtonView *launcherOne = (LibraButtonView *)[cell.contentView viewWithTag:4];
-        LibraButtonView *launcherTwo = (LibraButtonView *)[cell.contentView viewWithTag:5];
-        LibraButtonView *launcherThree = (LibraButtonView *)[cell.contentView viewWithTag:6];
-        LibraAppView *appView = (LibraAppView *)[cell.contentView viewWithTag:7];
-        NSString *launcherOneID = [[self getAppsForGenreName:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]] objectAtIndex:0];
-        if (launcherOneID) {
+        NSArray *total = [self getAppsForGenreName:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]];
+        NSInteger totalCount = total.count;
+        if (totalCount >= 1) {
+            NSString *launcherOneID = [[preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]] objectAtIndex:0];
+            LibraButtonView *launcherOne = (LibraButtonView *)[cell.contentView viewWithTag:4];
             [launcherOne setImage:[self iconImageForIdentifier:launcherOneID] forState:UIControlStateNormal];
             launcherOne.identifier = launcherOneID;
             [launcherOne addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
         }
-        NSString *launcherTwoID = [[preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]] objectAtIndex:1]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
-        if (launcherTwoID) {
+        if (totalCount >= 2) {
+            NSString *launcherTwoID = [[preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]] objectAtIndex:1]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
+            LibraButtonView *launcherTwo = (LibraButtonView *)[cell.contentView viewWithTag:5];
             [launcherTwo setImage:[self iconImageForIdentifier:launcherTwoID] forState:UIControlStateNormal];
             launcherTwo.identifier = launcherTwoID;
             [launcherTwo addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
         }
-        NSString *launcherThreeID = [[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:2]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
-        if (launcherThreeID) {
+        if (totalCount >= 3) {
+            NSString *launcherThreeID = [[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:2]; //   [[self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]] objectAtIndex:0];
+            LibraButtonView *launcherThree = (LibraButtonView *)[cell.contentView viewWithTag:6];
             [launcherThree setImage:[self iconImageForIdentifier:launcherThreeID] forState:UIControlStateNormal];
             launcherThree.identifier = launcherThreeID;
             [launcherThree addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside];
         }
-        NSArray *appsForIndexPath = [preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]]; //   [self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]];
-        if (!([appsForIndexPath count] <= 3)) {
+        if (totalCount >= 4) {
+            NSArray *appsForIndexPath = [preferences objectForKey:[[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row]]; //   [self getAppsForGenreName:[self.genres objectAtIndex:indexPath.row]];
+            NSLog(@"LIBRA DEBUG: %@", appsForIndexPath);
+            LibraAppView *appView = (LibraAppView *)[cell.contentView viewWithTag:7];
             appView.identifier = [[preferences objectForKey:@"genres"] objectAtIndex:indexPath.row];
-            if ([appsForIndexPath count] >= 4) {
+            if (totalCount >= 5) {
                 UIImageView *libraViewOne = [[UIImageView alloc] initWithFrame:CGRectMake(5, 5, (appView.bounds.size.width - 15) / 2, (appView.bounds.size.height - 15) / 2)];
-                [libraViewOne setImage:[self iconImageForIdentifier:[appsForIndexPath objectAtIndex:3]]];
+                [libraViewOne setImage:[self iconImageForIdentifier:[[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:3]]];
                 [appView addSubview:libraViewOne];
             }
-            if ([appsForIndexPath count] >= 5) {
+            if (totalCount >= 6) {
                 UIImageView *libraViewTwo = [[UIImageView alloc] initWithFrame:CGRectMake(((appView.bounds.size.width - 15) / 2) + 10, 5, (appView.bounds.size.width - 15) / 2, (appView.bounds.size.height - 15) / 2)];
-                [libraViewTwo setImage:[self iconImageForIdentifier:[appsForIndexPath objectAtIndex:4]]];
+                [libraViewTwo setImage:[self iconImageForIdentifier:[[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:4]]];
                 [appView addSubview:libraViewTwo];
             }
-            if ([appsForIndexPath count] >= 6) {
+            if (totalCount >= 7) {
                 UIImageView *libraViewThree = [[UIImageView alloc] initWithFrame:CGRectMake(5, ((appView.bounds.size.width - 15) / 2) + 10, (appView.bounds.size.width - 15) / 2, (appView.bounds.size.height - 15) / 2)];
-                [libraViewThree setImage:[self iconImageForIdentifier:[appsForIndexPath objectAtIndex:5]]];
+                [libraViewThree setImage:[self iconImageForIdentifier:[[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:5]]];
                 [appView addSubview:libraViewThree];
             }
-            if ([appsForIndexPath count] >= 7) {
+            if (totalCount >= 7) {
                 UIImageView *libraViewFour = [[UIImageView alloc] initWithFrame:CGRectMake(((appView.bounds.size.width - 15) / 2) + 10, ((appView.bounds.size.width - 15) / 2) + 10, (appView.bounds.size.width - 15) / 2, (appView.bounds.size.height - 15) / 2)];
-                [libraViewFour setImage:[self iconImageForIdentifier:[appsForIndexPath objectAtIndex:6]]];
+                [libraViewFour setImage:[self iconImageForIdentifier:[[preferences objectForKey:[[preferences objectForKey:@"genres" ] objectAtIndex:indexPath.row]] objectAtIndex:6]]];
                 [appView addSubview:libraViewFour];
             }
         }
@@ -434,7 +522,7 @@ NSInteger genreTypesCount() {
 %new 
 
 - (void)openStack:(LibraTapGestureRecognizer *)sender {
-    NSLog(@"LIBRA DEBUG: %@", sender.identifier);
+    // NSLog(@"LIBRA DEBUG: %@", sender.identifier);
     isAppStack = YES;
     if (!self.stackWindow) {
         self.stackWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -493,7 +581,7 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)dismissStack {
-    [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
+    // [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
     isAppStack = NO;
     self.libraView.alpha = 0.0;
     [UIView animateWithDuration:0.5 animations:^{
@@ -616,23 +704,22 @@ NSInteger genreTypesCount() {
 
 - (void)getGenres {
     NSMutableArray *genresList = [[NSMutableArray alloc] init];
-    if (![preferences objectForKey:@"genres"]) {
-        NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
-        for (NSString *key in [apps allKeys]) {
-            if (key != nil) {
-                LSApplicationProxy *proxy = [LSApplicationProxy applicationProxyForIdentifier:[NSString stringWithFormat:@"%@", key]];
-                NSString *genre = [proxy genre];
-                if (genre != NULL) {
-                    [genresList addObject:[proxy genre]];
-                }
+    NSDictionary *apps = [[ALApplicationList sharedApplicationList] applications];
+    for (NSString *key in [apps allKeys]) {
+        if (key != nil) {
+            LSApplicationProxy *proxy = [LSApplicationProxy applicationProxyForIdentifier:[NSString stringWithFormat:@"%@", key]];
+            NSString *genre = [proxy genre];
+            if (genre != NULL) {
+                [genresList addObject:[proxy genre]];
             }
         }
-        NSOrderedSet *set = [[NSOrderedSet alloc] initWithArray:genresList];
-        NSArray *genresFinal = [set array];
-        self.genres = [genresFinal copy];
-        NSMutableArray *listWithNew = [genresFinal mutableCopy];
-        [preferences setObject:[listWithNew copy] forKey:@"genres"];
     }
+    NSOrderedSet *set = [[NSOrderedSet alloc] initWithArray:genresList];
+    NSArray *genresFinal = [set array];
+    self.genres = [genresFinal copy];
+    NSMutableArray *listWithNew = [genresFinal mutableCopy];
+    [listWithNew addObject:@"System"];
+    [preferences setObject:[listWithNew copy] forKey:@"genres"];
 }
 %end
 
@@ -655,8 +742,6 @@ NSInteger genreTypesCount() {
         } completion:^(BOOL finished) {
 		    [appWindow setHidden:YES];
 	    }];
-		//appWindow.hidden = YES;
-		// appWindow = nil;
 	}
 }
 %end
