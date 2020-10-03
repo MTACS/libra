@@ -13,10 +13,10 @@ NSInteger feedbackStyle;
 NSInteger feedbackSelection;
 
 static void feedbackcall() {
-    UIImpactFeedbackGenerator * feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:(int)feedbackSelection];
+    UIImpactFeedbackGenerator *feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
     [feedback prepare];
     [feedback impactOccurred];
-    }
+}
 
 long long getCurrentPage() {
     SBRootFolderController *sbr = [[%c(SBIconController) sharedInstance] _rootFolderController];
@@ -48,26 +48,6 @@ void showAlert(NSString *title, NSString *message) {
     [alert addAction:ok];
     [alert addAction:cancel];
     [[%c(SBIconController) sharedInstance] presentViewController:alert animated:YES completion:nil]; 
-}
-
-int mod (int a, int b) {
-   if (b < 0) //you can check for b == 0 separately and do what you want
-    return -mod(-a, -b);   
-   int ret = a % b;
-   if(ret < 0)
-     ret+=b;
-   return ret;
-}
-
-NSInteger genreTypesCount() {
-    NSInteger genreTypes = [[%c(SBIconController) sharedInstance] genres].count;
-    if (genreTypes == 1 || genreTypes == 2) {
-        return 1;
-    }
-    if (genreTypes >= 3) {
-        return mod(genreTypes, 2);
-    }
-	return genreTypes / 2;
 }
 
 %group Tweak
@@ -226,8 +206,6 @@ NSInteger genreTypesCount() {
                     }
                 }
             }
-            // [returnItems addObject:@"com.mtac.libra"];
-            // NSLog(@"LIBRA DEBUG: Genre -> %@: %@", name, returnItems);
             [preferences setObject:[returnItems copy] forKey:name];
             return returnItems;
         }
@@ -241,33 +219,7 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)setupView {
-    if (useHaptics && hapticOpen)
-        
-        switch (feedbackStyle) {
-
-            case 0:
-            feedbackSelection = UIImpactFeedbackStyleLight;
-            feedbackcall();
-            break;
-
-            case 1:
-            feedbackSelection = UIImpactFeedbackStyleMedium;
-            feedbackcall();
-            break;
-
-            case 2:
-            feedbackSelection = UIImpactFeedbackStyleHeavy;
-            feedbackcall();
-            break;
-
-            default:
-            feedbackSelection = UIImpactFeedbackStyleLight;
-            feedbackcall();
-            break;
-
-            }
-        
-        
+    if (useHaptics && hapticOpen) feedbackcall();
     if (!self.appWindow) {
         self.appWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
         self.appWindow.backgroundColor = [UIColor clearColor];
@@ -282,12 +234,6 @@ NSInteger genreTypesCount() {
         _UIBackdropViewSettings *dropSettings = [_UIBackdropViewSettings settingsForStyle:2];
         _UIBackdropView *blurView = [[_UIBackdropView alloc] initWithFrame:CGRectMake(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT) autosizesToFitSuperview:YES settings:dropSettings];
         [self.appWindow addSubview:blurView];
-
-        /*UIView *blurView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT)];
-        UIVisualEffectView *wallVisualEffectView = [[UIVisualEffectView alloc] initWithFrame:blurView.bounds];
-        wallVisualEffectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
-        [blurView addSubview:wallVisualEffectView];
-        [self.appWindow addSubview:blurView]; */
     
         UIView *searchView = [[UIView alloc] initWithFrame:CGRectMake(30, 50, DEVICE_WIDTH - 60, 50)];
         searchView.layer.masksToBounds = YES;
@@ -388,32 +334,7 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)swiperight:(id)sender {
-    if (useHaptics && hapticClose)
-    
-        switch (feedbackStyle) {
-
-            case 0:
-            feedbackSelection = UIImpactFeedbackStyleLight;
-            feedbackcall();
-            break;
-
-            case 1:
-            feedbackSelection = UIImpactFeedbackStyleMedium;
-            feedbackcall();
-            break;
-
-            case 2:
-            feedbackSelection = UIImpactFeedbackStyleHeavy;
-            feedbackcall();
-            break;
-
-            default:
-            feedbackSelection = UIImpactFeedbackStyleLight;
-            feedbackcall();
-            break;
-
-        }
-    
+    if (useHaptics && hapticClose) feedbackcall();
     if (self.appWindow.hidden == NO) {
         [self removeView];
     }
@@ -640,7 +561,8 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)dismissStack {
-    // [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
+    [self.libraView registerClass:[LibraCell class] forCellWithReuseIdentifier:@"cellIdentifier1"];
+    [self.libraView reloadData];
     isAppStack = NO;
     self.libraView.alpha = 0.0;
     [UIView animateWithDuration:0.5 animations:^{
@@ -680,70 +602,6 @@ NSInteger genreTypesCount() {
         return UIEdgeInsetsMake(0, 5, 5, 5); // top, left, bottom, right
     }
     return UIEdgeInsetsMake(20, 20, 20, 20);
-}
-
-%new
-- (UIVisualEffect *)getBlurStyle:(NSInteger)style {
-	switch (style) {
-		case 0:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterialDark];
-		break;
-
-	// Ultra Thin - Dark
-		case 1:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterialDark];
-		break;
-
-	// Thin - Light
-		case 2:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterialLight];
-		break;
-
-	// Thin - Dark
-		case 3:
-		// return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterialDark];
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
-        break;
-
-	// Normal - Light
-		case 4:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialLight];
-		break;
-
-	// Normal - Dark
-		case 5:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
-		break;
-
-	// Thick - Light
-		case 6:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialLight];
-		break;
-
-	// Thick - Dark
-		case 7:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark];
-		break;
-
-	// Chrome - Light
-		case 8:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemChromeMaterialLight];
-		break;
-
-	// Chrome - Dark
-		case 9:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemChromeMaterialDark];
-		break;
-
-		case 10:
-        return nil;
-        break;
-
-		default:
-		return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterialLight];
-		break;
-    }
-
 }
 
 %new
