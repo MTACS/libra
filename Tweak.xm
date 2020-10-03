@@ -9,6 +9,14 @@ BOOL enabled;
 BOOL useHaptics;
 BOOL hapticOpen;
 BOOL hapticClose;
+NSInteger feedbackStyle;
+NSInteger feedbackSelection;
+
+static void feedbackcall() {
+    UIImpactFeedbackGenerator * feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:(int)feedbackSelection];
+    [feedback prepare];
+    [feedback impactOccurred];
+    }
 
 long long getCurrentPage() {
     SBRootFolderController *sbr = [[%c(SBIconController) sharedInstance] _rootFolderController];
@@ -233,7 +241,33 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)setupView {
-    if (useHaptics && hapticOpen) AudioServicesPlaySystemSound(1519);
+    if (useHaptics && hapticOpen)
+        
+        switch (feedbackStyle) {
+
+            case 0:
+            feedbackSelection = UIImpactFeedbackStyleLight;
+            feedbackcall();
+            break;
+
+            case 1:
+            feedbackSelection = UIImpactFeedbackStyleMedium;
+            feedbackcall();
+            break;
+
+            case 2:
+            feedbackSelection = UIImpactFeedbackStyleHeavy;
+            feedbackcall();
+            break;
+
+            default:
+            feedbackSelection = UIImpactFeedbackStyleLight;
+            feedbackcall();
+            break;
+
+            }
+        
+        
     if (!self.appWindow) {
         self.appWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
         self.appWindow.backgroundColor = [UIColor clearColor];
@@ -354,7 +388,32 @@ NSInteger genreTypesCount() {
 %new
 
 - (void)swiperight:(id)sender {
-    if (useHaptics && hapticClose) AudioServicesPlaySystemSound(1519);
+    if (useHaptics && hapticClose)
+    
+        switch (feedbackStyle) {
+
+            case 0:
+            feedbackSelection = UIImpactFeedbackStyleLight;
+            feedbackcall();
+            break;
+
+            case 1:
+            feedbackSelection = UIImpactFeedbackStyleMedium;
+            feedbackcall();
+            break;
+
+            case 2:
+            feedbackSelection = UIImpactFeedbackStyleHeavy;
+            feedbackcall();
+            break;
+
+            default:
+            feedbackSelection = UIImpactFeedbackStyleLight;
+            feedbackcall();
+            break;
+
+        }
+    
     if (self.appWindow.hidden == NO) {
         [self removeView];
     }
@@ -774,6 +833,7 @@ NSInteger genreTypesCount() {
         [preferences registerBool:&hapticOpen default:NO forKey:@"hapticOpen"];
         [preferences registerBool:&hapticClose default:NO forKey:@"hapticClose"];
         [preferences registerDefaults:@{@"enabled": @NO, @"useHaptics": @NO, @"hapticOpen": @NO, @"hapticClose": @NO}];
+        [preferences registerInteger:&feedbackStyle default:0 forKey:@"feedbackStyle"];
     }
     if (enabled) {
         %init(Tweak);
