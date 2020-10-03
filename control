@@ -1,7 +1,7 @@
 Package: com.mtac.libra
 Name: Libra
 Depends: mobilesubstrate, com.rpetrich.rocketbootstrap, ws.hbang.common
-Version: 0.0.1
+Version: 1.1
 Architecture: iphoneos-arm
 Description: An awesome MobileSubstrate tweak!
 Maintainer: MTAC
