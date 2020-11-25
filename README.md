@@ -1,5 +1,9 @@
 # libra
 
+**THIS IS NOWHERE COMPLETE**
+
+**Feel free to improve on this. ALl I ask is you don't take it and claim it as your own, I'd love to work with someone to get this complete**
+
 broken
 
 - subfolder uicollectionview doesn't always register the cellidentifier2 LibraCell cell class making buttons untappable
